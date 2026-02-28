@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>副業準備度診断</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-xl mx-auto p-4 sm:p-6">
+      <section id="start-screen" class="bg-white shadow-md rounded-xl p-6 sm:p-8">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-4">
+          あなたは「本当に」副業を始められる状態か？
+        </h1>
+        <p class="text-sm sm:text-base text-slate-700 mb-4">
+          この診断は、あなたの
+          <span class="font-semibold">副業準備度（どれくらい動ける状態か）</span>と、
+          <span class="font-semibold">ブレーキ要因（何が足を引っ張っているか）</span>
+          を簡易的に可視化するツールです。
+        </p>
+        <ul class="list-disc list-inside text-sm sm:text-base text-slate-700 mb-6 space-y-1">
+          <li>所要時間：約2〜3分</li>
+          <li>全9問・選択式</li>
+          <li>結果は「準備度レベル（4段階）× ブレーキタイプ（3種）」で表示</li>
+        </ul>
+
+        <div class="mb-6">
+          <label for="nickname-input" class="block text-sm font-medium text-slate-700 mb-2">
+            ニックネーム（任意）
+          </label>
+          <input 
+            type="text" 
+            id="nickname-input" 
+            placeholder="例：タロウ" 
+            class="w-full h-11 px-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900" 
+          />
+        </div>
+
+        <button
+          id="start-button"
+          class="w-full h-12 rounded-lg bg-slate-900 text-white font-semibold text-sm sm:text-base hover:bg-slate-800 active:bg-slate-950 transition-colors"
+        >
+          診断をはじめる
+        </button>
+      </section>
+
+      <section id="question-screen" class="hidden bg-white shadow-md rounded-xl p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-4">
+          <p id="progress-text" class="text-xs sm:text-sm text-slate-600"></p>
+          <button
+            id="back-button"
+            class="text-xs sm:text-sm text-slate-500 hover:text-slate-800 underline disabled:opacity-30 disabled:no-underline"
+          >
+            戻る
+          </button>
+        </div>
+
+        <div class="mb-4 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-2 bg-slate-900 rounded-full" style="width: 0%;"></div>
+        </div>
+
+        <div id="question-container" class="mt-4">
+          <h2 id="question-text" class="text-lg sm:text-xl font-semibold mb-4"></h2>
+          <div id="options-container" class="space-y-2"></div>
+          <p id="error-message" class="mt-3 text-sm text-red-600 hidden">回答を選んでください</p>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button
+            id="next-button"
+            class="flex-1 h-11 rounded-lg bg-slate-900 text-white text-sm sm:text-base font-semibold hover:bg-slate-800 active:bg-slate-950 transition-colors"
+          >
+            次へ
+          </button>
+        </div>
+      </section>
+
+      <section id="result-screen" class="hidden bg-white shadow-md rounded-xl p-6 sm:p-8 space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 mb-1">診断結果</p>
+          <h2 id="result-title" class="text-xl sm:text-2xl font-bold mb-2">
+            副業準備度：--％（L-）
+          </h2>
+          <p id="result-oneliner" class="text-sm sm:text-base text-slate-700">
+            あなたの副業準備状態を分析しています。
+          </p>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-100 rounded-lg p-4 space-y-3">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm text-slate-500">副業準備度</span>
+            <span id="percent-display" class="text-2xl font-bold text-slate-900">--%</span>
+            <span id="level-display" class="text-xs font-semibold text-slate-600 px-2 py-0.5 rounded-full bg-slate-100">
+              L-
+            </span>
+          </div>
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div id="percent-bar" class="h-2 bg-slate-900 rounded-full" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-100 rounded-lg p-4">
+          <p class="text-xs text-slate-500 mb-1">ブレーキ要因タイプ</p>
+          <p id="type-label" class="text-lg font-semibold text-slate-900">
+            --
+          </p>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-100 rounded-lg p-4 space-y-3">
+          <p class="text-xs text-slate-500">軸スコア（0〜12）</p>
+          <div class="space-y-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>C：時間の余裕</span>
+                <span id="axis-score-c">-- / 12</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="axis-bar-c" class="h-2 bg-slate-900 rounded-full" style="width:0%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>D：方向性の明確さ</span>
+                <span id="axis-score-d">-- / 12</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="axis-bar-d" class="h-2 bg-slate-900 rounded-full" style="width:0%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span>M：メンタルの余裕</span>
+                <span id="axis-score-m">-- / 12</span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div id="axis-bar-m" class="h-2 bg-slate-900 rounded-full" style="width:0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-dashed border-slate-200 rounded-lg p-4">
+          <p id="result-detail" class="text-xs sm:text-sm text-slate-600">
+            詳細な診断コメントは、実装段階で resultKey ごとに差し替え可能です。（現状はプレースホルダ）
+          </p>
+        </div>
+
+        <div class="space-y-3">
+<a
+  id="cta-button"
+  href="https://note.com/watanbe15/n/n7f4e5e4bccee?app_launch=false"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="block w-full h-11 rounded-lg bg-slate-900 text-white text-sm sm:text-base font-semibold text-center leading-[2.75rem] hover:bg-slate-800 active:bg-slate-950 transition-colors"
+>
+  noteで詳しい解説を読む
+</a>
+          <button
+            id="retry-button"
+            class="w-full h-10 rounded-lg border border-slate-300 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            もう一度診断する
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================
+    // ⬇️ ここにステップ1で発行したGASのWebアプリURLを貼り付けます ⬇️
+    // =====================================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw-c_3q_8ZkyTJu74UDDrKHo_UMAU9qh6x6lA0d2rRCQrTmHWnjwppAC91IH3h8gH7W/exec";
+
+
+    // =====================================================
+    // 質問データ等（変更なし）
+    // =====================================================
+    const QUESTIONS = [
+      { id: "q1", axis: "C", question: "あなたは、平日夜に「30分〜1時間の作業時間」を確保できる日がどれくらいありますか？", options: [ { label: "ほぼない", score: 0 }, { label: "月に数回", score: 1 }, { label: "週1〜2日", score: 2 }, { label: "週3〜4日", score: 3 }, { label: "ほぼ毎日", score: 4 } ] },
+      { id: "q2", axis: "C", question: "仕事終わりの疲労は、睡眠をとると翌日に概ね回復しますか？", options: [ { label: "ほとんど回復しない", score: 0 }, { label: "かなり残る", score: 1 }, { label: "半分くらい残る", score: 2 }, { label: "たいてい回復する", score: 3 }, { label: "ほぼ完全に回復する", score: 4 } ] },
+      { id: "q3", axis: "C", question: "休日に「自分のための作業時間（30分以上）」を確保できていることが多いですか？", options: [ { label: "ほぼ確保できない", score: 0 }, { label: "月に数回", score: 1 }, { label: "たまにできる", score: 2 }, { label: "毎週ある程度できる", score: 3 }, { label: "ほぼ毎回確保できる", score: 4 } ] },
+      { id: "q4", axis: "D", question: "現時点で「自分が取り組むべき副業ジャンル」が1つ以上イメージできますか？", options: [ { label: "まったくない", score: 0 }, { label: "ぼんやりある", score: 1 }, { label: "いくつかあるが絞れない", score: 2 }, { label: "ある程度ある", score: 3 }, { label: "ほぼ1つに絞れている", score: 4 } ] },
+      { id: "q5", axis: "D", question: "あなたは「副業で最初に何をやるべきか」を具体的に説明できますか？", options: [ { label: "説明できない", score: 0 }, { label: "部分的なら説明できる", score: 1 }, { label: "大まかには説明できる", score: 2 }, { label: "かなり説明できる", score: 3 }, { label: "具体的に説明できる", score: 4 } ] },
+      { id: "q6", axis: "D", question: "副業で使える「自分の強み・経験」はどれくらい把握できていますか？", options: [ { label: "ほぼ把握していない", score: 0 }, { label: "なんとなく知っている", score: 1 }, { label: "いくつか思い当たる", score: 2 }, { label: "複数理解している", score: 3 }, { label: "具体的に棚卸し済み", score: 4 } ] },
+      { id: "q7", axis: "M", question: "新しいことを始めるとき、「失敗したらどうしよう」と考えて動けなくなることがありますか？", options: [ { label: "頻繁にある", score: 0 }, { label: "時々ある", score: 1 }, { label: "少しある", score: 2 }, { label: "ほとんどない", score: 3 }, { label: "ほぼない", score: 4 } ] },
+      { id: "q8", axis: "M", question: "完璧に準備できていないと行動しづらいと感じることが多いですか？", options: [ { label: "とても多い", score: 0 }, { label: "多い", score: 1 }, { label: "少しある", score: 2 }, { label: "あまりない", score: 3 }, { label: "ほぼない", score: 4 } ] },
+      { id: "q9", axis: "M", question: "過去に「やろうと思ったのに、気づいたら何もやっていなかった」経験はどれくらいありますか？", options: [ { label: "よくある", score: 0 }, { label: "時々ある", score: 1 }, { label: "たまにある", score: 2 }, { label: "ほとんどない", score: 3 }, { label: "ほぼない", score: 4 } ] }
+    ];
+
+    const TOTAL_MAX = 36;
+    const RESULT_FRAMES = {
+      C_L1: { resultTitle: "余白ゼロのオーバーヒート状態", oneLiner: "いまのあなたは副業の能力がないのではなく、そもそも動ける余白がほとんど残っていない状態です。", detailBody: "いまのあなたは「副業の能力がない」のではなく、\nそもそも動ける余白がほぼ残っていない状態です。\n\n平日の疲労が回復しづらい、休日も予定や疲れで埋まる、\nそして「やろう」と思っても着手できない——。\nこれは怠けではなく、環境キャパの限界が要因です。\n\nこのゾーンの人が無理に副業を始めると、\n「続かない → 自分を責める → さらに動けない」の悪循環が起きやすくなります。\n\n今必要なのは、“副業”そのものよりも、\nまず生活サイクルの立て直しや、余白を作る小さな改善です。\n\n副業は逃げません。\nあなたの土台を整えることが、結局いちばん早く、そして確実に前へ進むルートです。" },
+      C_L2: { resultTitle: "あと一歩で動ける“惜しいキャパ”", oneLiner: "部分的には動ける余白があるものの、体力と時間の波で習慣化が阻まれている状態です。", detailBody: "あなたはすでに、部分的には動ける余白がある状態です。\n\nただし、日によって体力や時間の波が大きく、\n「やれる日」と「まったくできない日」が混在しているのが特徴。\n\nこのゾーンの人は、行動力はあるのに習慣化が難しい傾向があります。\nつまり、才能や意思の問題ではなく、\n“余白が安定しない構造”がペースを崩しているだけなのです。\n\n対処のポイントとしては、次のような“キャパに合わせた設計”が最重要です：\n・短時間で完了するタスクを採用する\n・週1〜2回だけの“副業デー”を固定する\n・回復ルーティンを整備してエネルギーを均す\n\n副業を諦める必要はありません。\n“やれる日の精度を上げる”だけで、あなたはグッと前に進めるゾーンにいます。" },
+      C_L3: { resultTitle: "動けば進む“実践フェーズ手前”", oneLiner: "始めれば問題なく回る余白がすでにあり、必要なのは最初の1手の具体化だけです。", detailBody: "あなたはすでに、副業を始めても問題なく回せる余白を持っています。\n\n平日・休日ともにある程度の時間や体力が確保できており、\n“頑張らなくても動ける日”が十分に存在しています。\n\nこのゾーンで停滞している理由は明確で、キャパの問題ではなく、\n「何をどこから始めるか」への小さな迷いが残っているだけです。\n\n副業に必要なのは“覚悟”ではありません。\n必要なのは **最初の1手の具体性** です。\n\nむしろこのレベルのキャパがあるなら、小さく動き始めれば自然と慣性がつき、\n一度進み出せば「続けられる自分」を実感できるでしょう。\n\nあなたはすでに、“副業を始めても折れないライン”に到達しています。" },
+      C_L4: { resultTitle: "余白も体力も整った“即スタート体質”", oneLiner: "副業を受け入れる土台が完全に整った、いまが最適なスタートタイミングです。", detailBody: "あなたは副業を始めるための **土台が完全に整っている状態** です。\n\n・平日にも十分な作業時間\n・休日にも安定した余白\n・疲労の回復サイクルも安定\n・生活が“副業を受け入れられる構造”になっている\n\nこれは一般的に言えば、**「副業成功者の初期状態」** といえます。\n\nいまの停滞はキャパの問題ではなく、\n方向性の迷いや、完璧に始めたい気持ちが足を止めているだけ。\n\nあなたは「動けば動くほど結果がついてくる体質」なので、\n最初の一歩を切るタイミングとしてはいまが最適です。\n\n副業に本格的に取り組むなら、\n“ここからの3ヶ月”はとくに伸びやすいゾーンです。" },
+      D_L1: { resultTitle: "地図が真っ白のまま立ち止まっている状態", oneLiner: "今は“何から始めればいいか分からない”だけ。地図が描ければ必ず動けます。", detailBody: "今のあなたは、\n\n**「副業をやりたい気持ちはあるけれど、何から始めればいいのか“一切わからない”」**\n\nという地点にいます。\n\nこれは意思の弱さではなく、\n**判断基準がまったくない状態で進もうとしているだけ。**\n\nジャンル、必要スキル、最初の作業、成果までの距離…\nどれも霧がかかったままなので、動けなくて当然です。\n\nこのゾーンでは、行動よりも先に\n**“選択肢を狭める作業”** が最優先になります。\n\n例えば：\n・過去の経験の棚卸し\n・得意なことの言語化\n・「やりたい」よりも「できる」を起点に整理する\n\nあなたは止まっているのではなく、\n**地図がまだ描かれていないだけ。**\n\n地図さえ描ければ、行動は自然と前に進みます。" },
+      D_L2: { resultTitle: "選択肢が多すぎて動けない“迷いの渋滞”", oneLiner: "選択肢が多すぎて止まっているだけ。基準が定まれば一気に進みます。", detailBody: "あなたはすでに、\n\n**いくつかの副業ジャンルや方向性が頭に浮かんでいる状態** です。\n\nしかし、その数が多すぎるため、\n「どれで行くべきか？」「失敗しない選び方は？」と迷いが蓄積し、結果的に動けていません。\n\nこのゾーンで最も消耗するのは、\n**やらない理由ではなく、“選べない疲労”** です。\n\n方向迷子タイプのL2は、特に以下の罠が起きやすい：\n・リサーチだけ増える\n・比較しすぎて余計に混乱する\n・自分の強みを見失う\n\n必要なのは「選択肢を増やすこと」ではなく、\n**“捨てる基準”の明確化** です。\n\n例えば：\n・自分が続けられる時間/環境に合うか\n・早期に小さく成果を出せるか\n\nこうした“土台基準”で絞るだけで、道が一気にクリアになります。" },
+      D_L3: { resultTitle: "方向性は見えているのに、最後のピースが足りない状態", oneLiner: "動けない理由は“方向性”ではなく“初動タスクの不明確さ”だけです。", detailBody: "あなたはすでに、\n\n**副業の方向性がかなり固まりつつある状態** です。\n\n「なんとなくこのジャンルかな」\n「この強みが活かせそう」\n\nという仮説があり、途中まで道ができています。\n\nそれでも止まる理由はただ一つ、\n**“最初の具体的タスクが曖昧”** だから。\n\n方向性はあるのに動けない人の典型は：\n・何から着手すればいいのか曖昧\n・作業の粒度が大きすぎる\n・完璧に決めてから動こうとする\nといった“初動のピース不足”です。\n\nこのゾーンの人は、\n**「最初の30分でできる行動リスト」** を作るだけで一気に前へ進みます。\n\nあなたはすでに“やる方向”は正しい。\nあとは、\n**どの順番で、どの粒度で着手するか**。\n\nそれさえ決まれば、自然と動き出せるレベルにいます。" },
+      D_L4: { resultTitle: "目指す道も強みも揃った“あとは踏み出すだけフェーズ”", oneLiner: "方向性は完全に固まっています。必要なのは“今日30分だけ動く”という初動だけ。", detailBody: "あなたは副業に必要な **方向性の解像度が非常に高い状態** です。\n\n・取り組むジャンルはほぼ決まっている\n・使える強みも理解している\n・進むべき大まかなステップも見えている\n\nここまでくれば、もう「判断の問題」ではありません。\n\n残っているのは、\n**“着手のタイミング”と“習慣化の仕組み”** の二つだけ。\n\n方向迷子タイプのL4は、実は副業開始後の伸びが最も早い層です。\nなぜなら、\n**何をすれば成果につながるかが理解できているから**。\n\nいま必要なのは、大きな覚悟ではなく、\n**“今日30分だけ動く”という初動の火種**。\n\nあなたはすでに「地図」も「目的地」も揃っています。\nあとは歩き始めれば自然と加速していくフェーズです。" },
+      M_L1: { resultTitle: "頭の中で“危険予測”が暴走している状態", oneLiner: "慎重さという強みが“安全過剰モード”に入り、心が先にブレーキを踏んでしまっている状態です。", detailBody: "いまのあなたは、\n\n**「失敗したらどうしよう」\n「間違えたら取り返しがつかない」**\n\nというネガティブシミュレーションが強すぎて、\n行動する前に心がブレーキを踏んでしまう状態です。\n\nこれは性格の弱さでも、意思の弱さでもありません。\n脳が「安全を守ろう」と反応しているだけ。\n\nむしろ **慎重さという強みが暴暴走している** と言ったほうが近い。\n\nこのゾーンでは、\n・準備に時間をかけすぎる\n・考えるほど不安が増える\n・動けない自分を責めてさらに動けなくなる\nという“思考のループ”が起きやすい。\n\n必要なのは、\n**行動量を増やすことではなく、不安の取扱い方を変えること。**\n\n不安は“やめる理由”ではなく、\n**「どこから整えれば安心して動けるか」を教えてくれるサイン** です。\n\nこの理解だけで、ブレーキの強さは確実に落ちます。" },
+      M_L2: { resultTitle: "動けるのに心が追いつかない“慎重さの渋滞”", oneLiner: "動ける力はあるのに、完璧思考が初動を重くしている状態です。", detailBody: "あなたは実は **ある程度動けるタイプ** です。\n\nただし、\n**「まだ準備が足りない気がする」\n「もっと上手くできるはず」**\nという完璧思考が裏で働き、着手までが重くなる。\n\nL2のメンタルロックは、\n“不安で止まる”というより、\n**「完璧にやりたい」という想いで足がすくむ** パターン。\n\nそのため、\n・やればできるのに着手が遅れる\n・小さな失敗に必要以上に落ち込む\n・調べすぎて逆に動けなくなる\nといった“慎重さゆえの足踏み”が起きやすい。\n\n解決策は、\n**「下書きでいいから1度形にする」経験を積むこと。**\n\n完璧思考は悪ではなく、\n**成果物のクオリティを押し上げる武器**。\nただし“使う順番”を間違えると行動を止めてしまう。\n\nあなたは動ける素質がある。\n\nだからこそ、**動き始めるための設計**が必要なゾーンです。" },
+      M_L3: { resultTitle: "動けば伸びるのに不安だけ少し残る状態", oneLiner: "行動できるメンタル体力は十分。残っているのは“最初の一歩の恐れ”だけです。", detailBody: "あなたはすでに、\n\n**副業を始めても問題ないメンタルの安定度** を持っています。\n\n不安はゼロではないものの、\n・やれば前に進める\n・休めば回復する\n・必要以上に自責しない\nという“行動できるメンタル体力”が備わっている。\n\nL3のメンタルロックは、\n**「あと一歩」の勇気だけが欠けている状態**。\n\n実際には、\n・小さく始めればすぐ慣れてくる\n・やる前がいちばん不安で、着手すると落ち着く\n・自己肯定感や成果が“行動後”に伸びる\nという特性を持つ。\n\nつまり、今止めているのは能力ではなく、\n**「最初の負荷に対する恐れ」だけ**。\n\n安心してほしいのは、\nこのゾーンの人は **最初の一歩さえ踏めば加速度的に伸びる** ということ。\n\nすでにあなたは「やれる側」に立っています。" },
+      M_L4: { resultTitle: "不安に強く行動後に最も伸びる即加速タイプ", oneLiner: "メンタルはすでに副業向き。必要なのは“最初の30分”だけです。", detailBody: "あなたは、\n\n**不安に振り回されにくい安定したメンタル基盤** を持っています。\n\n・小さな失敗では折れない\n・完璧でなくても着手できる\n・行動しながら調整できる\n・自分を追い込みすぎない\n\nこれは副業において非常に強い強みです。\n\n副業は“不確実性の中を歩く”ため、\n**感情の揺れ耐性がある人は成長速度が速い**。\n\nただし、L4のメンタルロックタイプの課題はひとつだけ。\n\n**「慎重すぎる判断で、着手がほんの少し遅れがち」** という傾向。\n\n動けば圧倒的に伸びる土台があるため、必要なのは覚悟ではなく、\n**“最初の小さな火種（30分の初動）”**。\n\nあなたのメンタルは副業に向いています。\nあとは、走り始めるだけで成果が積み上がるフェーズです。" }
+    };
+
+    function computeDiagnosis(answers) {
+      let totalScore = 0;
+      const axisScores = { C: 0, D: 0, M: 0 };
+      for (const q of QUESTIONS) {
+        const option = q.options[answers[q.id]];
+        axisScores[q.axis] += option.score;
+        totalScore += option.score;
+      }
+      const percent = Math.round((totalScore / TOTAL_MAX) * 100);
+      let level;
+      if (percent >= 80) level = "L4";
+      else if (percent >= 60) level = "L3";
+      else if (percent >= 40) level = "L2";
+      else level = "L1";
+
+      const entries = [["C", axisScores.C], ["D", axisScores.D], ["M", axisScores.M]];
+      let minScore = Math.min(axisScores.C, axisScores.D, axisScores.M);
+      const candidates = entries.filter(([, v]) => v === minScore).map(([k]) => k);
+      const priority = ["M", "C", "D"];
+      let weakAxisType = "M";
+      for (const p of priority) {
+        if (candidates.includes(p)) {
+          weakAxisType = p;
+          break;
+        }
+      }
+      return { totalScore, axisScores, percent, level, weakAxisType, resultKey: weakAxisType + "_" + level };
+    }
+
+    let currentStep = "start";
+    let currentQuestionIndex = 0;
+    let answers = {};
+    let lastResult = null;
+
+    const startScreen = document.getElementById("start-screen");
+    const questionScreen = document.getElementById("question-screen");
+    const resultScreen = document.getElementById("result-screen");
+    const startButton = document.getElementById("start-button");
+    const backButton = document.getElementById("back-button");
+    const nextButton = document.getElementById("next-button");
+    const progressText = document.getElementById("progress-text");
+    const progressBar = document.getElementById("progress-bar");
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const errorMessage = document.getElementById("error-message");
+    const resultTitle = document.getElementById("result-title");
+    const resultOneliner = document.getElementById("result-oneliner");
+    const percentDisplay = document.getElementById("percent-display");
+    const levelDisplay = document.getElementById("level-display");
+    const percentBar = document.getElementById("percent-bar");
+    const typeLabel = document.getElementById("type-label");
+    const axisScoreC = document.getElementById("axis-score-c");
+    const axisScoreD = document.getElementById("axis-score-d");
+    const axisScoreM = document.getElementById("axis-score-m");
+    const axisBarC = document.getElementById("axis-bar-c");
+    const axisBarD = document.getElementById("axis-bar-d");
+    const axisBarM = document.getElementById("axis-bar-m");
+    const resultDetail = document.getElementById("result-detail");
+    const retryButton = document.getElementById("retry-button");
+
+    function render() {
+      if (currentStep === "start") {
+        startScreen.classList.remove("hidden");
+        questionScreen.classList.add("hidden");
+        resultScreen.classList.add("hidden");
+      } else if (currentStep === "questions") {
+        startScreen.classList.add("hidden");
+        questionScreen.classList.remove("hidden");
+        resultScreen.classList.add("hidden");
+        renderQuestion();
+      } else if (currentStep === "result") {
+        startScreen.classList.add("hidden");
+        questionScreen.classList.add("hidden");
+        resultScreen.classList.remove("hidden");
+        renderResult();
+      }
+    }
+
+    function renderQuestion() {
+      const qIndex = currentQuestionIndex;
+      const q = QUESTIONS[qIndex];
+      progressText.textContent = `9問中 ${qIndex + 1}問目`;
+      progressBar.style.width = `${((qIndex) / QUESTIONS.length) * 100}%`;
+      questionText.textContent = q.question;
+      optionsContainer.innerHTML = "";
+
+      q.options.forEach((opt, index) => {
+        const id = `${q.id}_opt_${index}`;
+        const wrapper = document.createElement("label");
+        wrapper.className = "flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "option";
+        input.value = String(index);
+        input.id = id;
+        input.className = "h-4 w-4 text-slate-900 border-slate-300";
+        if (answers[q.id] === index) input.checked = true;
+        const span = document.createElement("span");
+        span.className = "text-sm sm:text-base";
+        span.textContent = opt.label;
+        wrapper.appendChild(input);
+        wrapper.appendChild(span);
+        optionsContainer.appendChild(wrapper);
+      });
+
+      nextButton.textContent = qIndex === QUESTIONS.length - 1 ? "結果を見る" : "次へ";
+      backButton.disabled = qIndex === 0;
+      errorMessage.classList.add("hidden");
+    }
+
+    function renderResult() {
+      const { percent, level, weakAxisType, axisScores, resultKey } = lastResult;
+      const typeLabels = {
+        C: "動きたいけど、時間や体力の余裕が足りていないタイプ",
+        D: "やりたい気持ちはあるけど、何を選べばいいか決めきれないタイプ",
+        M: "できる状態なのに、不安や慎重さでブレーキがかかるタイプ"
+      };
+      typeLabel.textContent = typeLabels[weakAxisType] || "--";
+
+      const frame = RESULT_FRAMES[resultKey];
+      resultTitle.textContent = frame.resultTitle;
+      resultOneliner.textContent = frame.oneLiner;
+      resultDetail.textContent = frame.detailBody;
+
+      percentDisplay.textContent = `${percent}%`;
+      levelDisplay.textContent = level;
+      percentBar.style.width = `${percent}%`;
+
+      axisScoreC.textContent = `${axisScores.C} / 12`;
+      axisScoreD.textContent = `${axisScores.D} / 12`;
+      axisScoreM.textContent = `${axisScores.M} / 12`;
+      axisBarC.style.width = `${(axisScores.C / 12) * 100}%`;
+      axisBarD.style.width = `${(axisScores.D / 12) * 100}%`;
+      axisBarM.style.width = `${(axisScores.M / 12) * 100}%`;
+    }
+
+    startButton.addEventListener("click", () => {
+      currentStep = "questions";
+      currentQuestionIndex = 0;
+      render();
+    });
+
+    backButton.addEventListener("click", () => {
+      if (currentQuestionIndex > 0) { currentQuestionIndex--; render(); }
+    });
+
+    nextButton.addEventListener("click", () => {
+      const q = QUESTIONS[currentQuestionIndex];
+      const selected = optionsContainer.querySelector("input[name='option']:checked");
+      if (!selected) {
+        errorMessage.classList.remove("hidden");
+        return;
+      }
+      answers[q.id] = parseInt(selected.value, 10);
+
+      if (currentQuestionIndex === QUESTIONS.length - 1) {
+        lastResult = computeDiagnosis(answers);
+        
+        // --- データの送信処理（追加） ---
+        const nickname = document.getElementById("nickname-input").value.trim();
+        const payload = {
+          nickname: nickname,
+          ...lastResult
+        };
+
+        // URLが設定されている場合のみ裏側で送信（結果表示は待たせない）
+        if (GAS_WEB_APP_URL.startsWith("http")) {
+          fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          }).catch(e => console.error("送信エラー:", e));
+        }
+        // --------------------------------
+
+        currentStep = "result";
+        render();
+      } else {
+        currentQuestionIndex++;
+        render();
+      }
+    });
+
+    retryButton.addEventListener("click", () => {
+      currentStep = "start";
+      currentQuestionIndex = 0;
+      answers = {};
+      lastResult = null;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
